@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Bot</title>
+
+    <link rel="stylesheet" href="static/css/chat.css">
+    <link rel="stylesheet" href="static/css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+    <!-- CHAT BAR BLOCK -->
+    <div class="chat-bar-collapsible">
+        <div class="custom_wrapper">
+            <button id="chat-button" type="button" class="collapsible">Welcome to techarc voice survey
+                <!-- <i id="chat-icon" style="color: #fff;" class="fa fa-fw fa-comments-o"></i> -->
+            </button>
+            <div class="content">
+                <div class="full-chat-block">
+                    <!-- Message Container -->
+                    <div class="outer-container">
+                        <div class="chat-container">
+                            <!-- Messages -->
+                            <div id="chatbox">
+                                <h5 id="chat-timestamp"></h5>
+                                <p id="botStarterMessage" class="botText"><span>Loading...</span></p>
+                            </div>
+                            <!-- User input box -->
+                            <div id="chat-bar-bottom">
+                                <div id="infoForSpeak" style="display: none;">
+
+                                    <p> क्रिप्या बोलिये</p>
+
+                                </div>
+                                <p></p>
+                            </div>
+
+                            <div class="chat-bar-input-block">
+                                <div id="userInput">
+                                    <i class="fa fa-microphone" style="color: #85CC09;"
+                                        onclick="runSpeechRecognition()"></i>
+                                    <p></p>
+
+                                </div>
+
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="static/scripts/responses.js"></script>
+<script src="static/scripts/chat.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script type="text/javascript">
+
+    function guidGenerator() {
+        var S4 = function () {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        };
+        return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+    const session = guidGenerator()
+    firstBotMessage(session);
+
+    var primarySim = ''
+    var simSelection = []
+    var internetProvider = ''
+
+    async function open_listening(stxt) {
+        await speak_text(stxt);
+        const result = await runSpeechRecognition(stxt);
+    }
+
+    function runSpeechRecognition(stxt) {
+        return new Promise(function (resolve) {
+            var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+            var recognition = new SpeechRecognition();
+
+            recognition.onstart = function () {
+                console.log("listening please speak");
+                document.getElementById('userInput').style.animation = 'micbutton 5s infinite'
+                document.getElementById('infoForSpeak').style.display = 'block';
+                // speek_text("I am listening you, please speak");
+            };
+
+            recognition.onspeechend = function (event) {
+                recognition.stop();
+                document.getElementById('userInput').style.animation = 'none'
+                document.getElementById('infoForSpeak').style.display = 'none';
+
+
+            }
+
+            recognition.onnomatch = () => {
+                console.log("no match")
+                //document.getElementById('userInput').style.animation = 'none'
+                console.log("Sorry, I didn't get that. Please try again");
+                document.getElementById('userInput').style.animation = 'none'
+                document.getElementById('infoForSpeak').style.display = 'none';
+
+                //open_listening("Sorry, I didn't get that. Please try again");
+
+            }
+            recognition.onerror = (event) => {
+                console.log(event.error)
+                //render botText message
+                const onErrorMessageText = 'क्या आप कृपया उपरोक्त प्रश्न का पुनः उत्तर दे सकते हैं?'
+                let botHtml = '<p class="botText"><span>' + onErrorMessageText + '</span></p>';
+                $("#chatbox").append(botHtml);
+                document.getElementById('userInput').style.animation = 'none'
+                document.getElementById('infoForSpeak').style.display = 'none';
+
+                //document.getElementById('userInput').style.animation = 'none'
+                console.log("Sorry, I didn't get that. Please try again");
+
+
+                const result = runSpeechRecognition('');
+                //open_listening("Sorry, I didn't get that. Please try again");
+            }
+
+            recognition.onresult = function (event) {
+                document.getElementById('userInput').style.animation = 'none'
+
+                var transcript = event.results[0][0].transcript;
+                var confidence = event.results[0][0].confidence;
+                open_listening(transcript);
+            };
+
+            recognition.lang = 'hi-IN'
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.start();
+        });
+    }
+
+    async function speak_text(txt) {
+        var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+        var recognition = new SpeechRecognition();
+        $('.action').text(txt);
+        var msg = new SpeechSynthesisUtterance();
+        var voices = window.speechSynthesis.getVoices();
+        console.log("Voices_1", msg)
+        console.log("Voices", voices)
+        var voiceLanguage = 'hi-IN';
+        for (var k = 0; k < voices.length; k++) {
+            if (voices[k]['lang'] == voiceLanguage) {
+                var selectedLanguageIndex = voices.indexOf(voices[k]);
+                break
+            }
+            else {
+                selectedLanguageIndex = 12;
+            }
+        }
+        msg.voice = voices[selectedLanguageIndex];
+        msg.voiceURI = 'native';
+        // msg.volume = 1; // 0 to 1
+        // msg.rate = 1; // 0.1 to 10
+        // msg.pitch = 2; //0 to 2
+        msg.text = txt;
+        msg.lang = voiceLanguage;
+
+        await new Promise(function (resolve) {
+            msg.onend = resolve;
+            // window.speechSynthesis.speak(msg);
+            console.log("msg", msg.text)
+            let userMessage = msg.text;
+            let userMessageModified = userMessage.replace(":00", "");
+            console.log("userMessageModified", userMessageModified);
+            // const callingQuestionArray = [
+            //     "जीरो से दस के पैमाने पर, जहां 'जीरो' का अर्थ है 'बिल्कुल संभावना नहीं' और 'दस' का अर्थ है 'अत्यंत संभावना', कॉलिंग का सिम,आप अपने दोस्तों और परिवार वालों को सिफारिश करने की कितनी संभावना है?",
+            //     "जीरो से दस के पैमाने जहां ''जीरो ' का अर्थ है 'बेहद असंतुष्ट' और ''दस' ' का अर्थ है 'बेहद संतुष्ट', अपने इलाके में कॉलिंग नेटवर्क के साथ अपने अनुभव को रेट करें"
+            // ]
+
+            callAPI(userMessageModified, session).then(async (r) => {
+                const data = r.data.Reply;
+                if (data.intent_name == "NPSServiceproviderName") {
+                    data.parameters.serviceProvider.listValue.values.map((item) => {
+                        console.log("Provider's " + item.stringValue)
+                        simSelection.push(item.stringValue)
+                    })
+                    const completeText = simSelection.join(' ') + "में से कौन सा सिम आपका प्राइमरी सिम है यानी आप इनकमिंग और आउटगोइंग कॉल के लिए सबसे ज्यादा किस सिम का इस्तेमाल करते हैं? "
+                    sendButton(userMessageModified, completeText)
+                }
+                else if (data.intent_name == "NPSPrimarysimForcall") {
+                    primarySim = data.parameters.serviceprovider.listValue.values[0].stringValue
+                    console.log("Primary Sim", primarySim)
+
+                    sendButton(userMessageModified, data.dialogflow_response)
+                }
+                else if (data.intent_name == "NPSspentMostTimeon") {
+                    const callingRating = data.dialogflow_response;
+                    console.log("callingRating", callingRating)
+                    console.log("Calling Ka Sim", primarySim)
+                    const callingResponse = `जीरो से दस के पैमाने पर, जहां 'जीरो' का अर्थ है 'बिल्कुल संभावना नहीं' और 'दस' का अर्थ है 'अत्यंत संभावना', ${primarySim} को आप इनकमिंग आउटगोइंग के लिए यूज करते हैं ,आप अपने दोस्तों और परिवार वालों को सिफारिश करने की कितनी संभावना है? `
+                    sendButton(userMessageModified, callingResponse)
+                }
+                else if (data.intent_name == "ResonforRecommendtoFamilyScoreless") {
+                    const callingNetworkRating = data.dialogflow_response;
+                    console.log("callingRating", callingNetworkRating)
+                    console.log("Calling Ka Sim", primarySim)
+                    const callingNetworkResponse = callingNetworkRating.replace("कॉलिंग", primarySim)
+                    sendButton(userMessageModified, callingNetworkResponse)
+                }
+                else if (data.intent_name == "NPSInternetNo") {
+                    const internetSelection = data.dialogflow_response;
+                    console.log("Ineternet", internetSelection)
+                    console.log("Internet Selection", simSelection)
+                    const internetResponse = internetSelection.replace("जिओ एयरटेल बीएसएनल वोडाफोन", simSelection)
+                    sendButton(userMessageModified, internetResponse)
+                }
+                else if (data.intent_name == "NPSInternetOnWhichSim") {
+                    internetProvider = data.parameters.serviceprovider.stringValue
+                    const internetNetwork = data.dialogflow_response;
+                    console.log("Ineternet", internetNetwork)
+                    console.log("Internet Selection", internetProvider)
+                    const internetNetworkResponse = internetNetwork.replace("मोबाइल", internetProvider)
+                    sendButton(userMessageModified, internetNetworkResponse)
+                }
+                //UI for userText is getting rendered here.
+                else {
+                    sendButton(userMessageModified, data.dialogflow_response)
+                }
+
+                const question = new SpeechSynthesisUtterance(data.dialogflow_response)
+                question.lang = voiceLanguage;
+                console.log("split length", data.dialogflow_response.split(' ').length)
+                await speechSynthesis.speak(question);
+
+                setTimeout(() => {
+                    runSpeechRecognition()
+                }, data.dialogflow_response.split(' ').length * 500)
+
+            })
+
+
+        });
+
+    }
+
+    const callAPI = async (msg, sessionId) => {
+
+        const res = await axios.post('https://bot.pharynxai.com:5000/airtelSmartphone', '', {
+            params: {
+                MSG: msg,
+                sessionId: sessionId
+            }
+        });
+        console.log("RES", res.data)
+        return res
+    }
+
+//
+    /*ANUJ CODE*/
+    //     const userInput = "airteljio"
+    // const src = ["airtel","jio","idea","bsnl"]
+    // var finaldata = ""
+    // src.map((item)=>{
+    // if(userInput.includes(item)){
+    //     finaldata = finaldata + item +","
+    // }
+
+
+    // })
+    // console.log(finaldata)
+
+
+    /*Last Intent Name*/
+    // "FamilyMembers"
+</script>
+
+</html>

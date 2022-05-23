@@ -1,0 +1,11 @@
+1.✔ Setup firebase project , deploy and get the URL for the bot with secure connection.
+    URL : https://techarcvoicebot.web.app/
+2.✔ Fixed the issue where chrome was asking for permissions repeatedly.
+3.✔ Changed the issue where Google speech to text was taking time instead of a number
+4.✔ Changed an issue where parameters are wrongly coded.
+5.✔ To indicate the user that microphone is in use and listening , I am adding a small 
+    UI component which glows red when listening. Also displays this text "क्रिप्या बोलिये"
+6.✔ Changed the code for section C
+7.✔ Made UI better
+
+
